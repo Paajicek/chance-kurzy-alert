@@ -57,4 +57,4 @@ while True:
         check_page()
     except Exception as e:
         print(f"Chyba při kontrole: {e}")
-    time.sleep(15)
+    time.sleep(40)
