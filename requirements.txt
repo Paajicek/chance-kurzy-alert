@@ -1,2 +1,2 @@
-playwright==1.39.0
+playwright-core==1.39.0
 requests
