@@ -1,0 +1,11 @@
+services:
+  - type: worker
+    name: chance-kurzy-alert
+    runtime: python
+    buildCommand: pip install -r requirements.txt && playwright install
+    startCommand: python main.py
+    envVars:
+      - key: TELEGRAM_TOKEN
+        value: 7785381597:AAFPf-jjYqSO_Db9w7avMXa3lq3PP3GbNb0
+      - key: TELEGRAM_CHAT_ID
+        value: 1842186722
