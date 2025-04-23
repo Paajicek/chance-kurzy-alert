@@ -1,3 +1,3 @@
 #!/bin/bash
-apt-get update && apt-get install -y chromium-browser
 pip install -r requirements.txt
+playwright install chromium

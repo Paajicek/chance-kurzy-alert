@@ -3,17 +3,18 @@ import time
 import requests
 from playwright.sync_api import sync_playwright
 
-# Telegram credentials
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+# 🔐 Token a chat ID pro Telegram (doplněno napevno)
+TELEGRAM_TOKEN = "7785381597:AAFPf-jjYqSO_Db9w7avMXa3lq3PP3GbNb0"
+TELEGRAM_CHAT_ID = "1842186722"
 
-# Hledané texty
+# 🔍 Hledané hodnoty
 HLEDANE_TEXTY = ["+17", "+21", "+22"]
 ZASLANE = set()
 
-# URL s kurzy
+# 🌐 URL Chance.cz s kurzy na tenis
 URL = "https://www.chance.cz/kurzy/tenis-43"
 
+# 📩 Posílá zprávu na Telegram
 def odesli_telegram(text):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     data = {"chat_id": TELEGRAM_CHAT_ID, "text": text}
@@ -22,35 +23,35 @@ def odesli_telegram(text):
     except Exception as e:
         print(f"Chyba při odesílání zprávy: {e}")
 
+# 🕵️‍♂️ Kontrola stránky
 def check_page():
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            executable_path="/usr/bin/chromium-browser"  # ruční cesta
-        )
+        browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(URL, timeout=60000)
-        page.wait_for_timeout(5000)
+        page.wait_for_timeout(5000)  # čekání na načtení obsahu
+
         html = page.content()
 
         for hledany in HLEDANE_TEXTY:
             if hledany in html and hledany not in ZASLANE:
-                # Pokus o vytažení zápasu (zjednodušený)
-                nadpisy = page.locator("div.competition-event__competitors")
+                zapasy = page.locator("div.competition-event__competitors")
+                eventy = page.locator("div.competition-event")
                 nalezen = False
-                for i in range(nadpisy.count()):
-                    text_zapasu = nadpisy.nth(i).inner_text()
-                    if hledany in page.locator("div.competition-event").nth(i).inner_html():
-                        odesli_telegram(f"Změna detekována: {hledany} u zápasu: {text_zapasu}")
+                for i in range(eventy.count()):
+                    if hledany in eventy.nth(i).inner_html():
+                        text_zapasu = zapasy.nth(i).inner_text()
+                        odesli_telegram(f"📢 Detekováno {hledany} u zápasu: {text_zapasu}")
                         ZASLANE.add(hledany)
                         nalezen = True
                         break
                 if not nalezen:
-                    odesli_telegram(f"Změna detekována: {hledany} (název zápasu se nepodařilo získat)")
+                    odesli_telegram(f"📢 Detekováno {hledany}, ale název zápasu nebyl nalezen")
                     ZASLANE.add(hledany)
 
         browser.close()
 
+# 🔁 Neustálá kontrola každých 15 sekund
 while True:
     try:
         check_page()
